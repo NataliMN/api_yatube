@@ -19,13 +19,16 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 class CommentViewSet(AuthValidationMixin, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
-    def get_queryset(self):
+    def get_post(self):
         post = get_object_or_404(Post, id=self.kwargs.get('post_id'))
-        new_queryset = post.comments.all()
-        return new_queryset
+        return post
+
+    def get_queryset(self):
+        post = self.get_post()
+        return post.comments.all()
 
     def perform_create(self, serializer):
         if self.request.user.is_authenticated:
-            post = get_object_or_404(Post, id=self.kwargs.get('post_id'))
+            post = self.get_post()
             serializer.save(author=self.request.user,
                             post=post)
